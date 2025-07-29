@@ -7,98 +7,138 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <style>
+        /* This CSS should handle the default rendering of {{ form.as_p }} */
+        .contact-container form p {
+            margin-bottom: 15px; /* Spacing between form fields */
+            text-align: left; /* Align labels/inputs left */
+        }
+
+        .contact-container form label {
+            display: block; /* Make labels appear on their own line */
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .contact-container form input, /* Targets all inputs (text, email, etc.) */
+        .contact-container form textarea {
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Include padding and border in the element's total width */
+        }
+        .contact-container form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Error message styling */
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.9em;
+            list-style-type: none;
+            padding: 0;
+            margin: 5px 0 0 0;
+        }
+
+        /* Your existing general CSS for body, header, nav, footer, etc. */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
-            text-align: center;
-        }
-
-        header {
-            background: #2c3e50;
-            padding: 20px;
-            color: #fff;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
         }
         nav {
-    background-color: #2c3e50;
-    padding: 10px 0;
-}
-
-nav .logo {
-    color: #fff;
-    font-size: 24px;
-    text-align: center;
-    font-weight: bold;
-}
-
-nav ul {
-    list-style-type: none;
-    padding: 0;
-    text-align: center;
-}
-
-nav ul li {
-    display: inline;
-    margin: 0 20px;
-}
-
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 18px;
-    padding: 10px 20px;
-    transition: background-color 0.3s;
-}
-
-nav ul li a:hover {
-    background-color: #16a085;
-    border-radius: 5px;
-}
-
+            background-color: #2c3e50;
+            padding: 10px 0;
+        }
+        nav .logo {
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 20px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
+        nav ul li a:hover {
+            background-color: #16a085;
+            border-radius: 5px;
+        }
         .contact-container {
             max-width: 600px;
             margin: 40px auto;
             background: #fff;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
         }
-
+        .contact-container h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
         .team-contact {
             margin-top: 20px;
+            margin-bottom: 30px;
+            text-align: left;
         }
-
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        input, textarea {
-            margin: 10px 0;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
         button {
             background: #3498db;
             color: #fff;
-            padding: 10px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s;
+            margin-top: 20px;
         }
-
         button:hover {
             background: #2980b9;
         }
-
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .messages .success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .messages .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        .messages .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-color: #ffeeba;
+        }
         footer {
             background: #2c3e50;
             color: #fff;
@@ -118,7 +158,8 @@ nav ul li a:hover {
             <li><a href="{% url 'team' %}">Team</a></li>
             <li><a href="{% url 'contact' %}">Contact</a></li>
             <li><a href="{% url 'login' %}">Login</a></li>
-            <li><a href="{% url 'signup' %}">Signup</a></li>  
+            <li><a href="{% url 'signup' %}">Signup</a></li>
+            <li><a href="{% url 'pickup' %}">Pickup Request</a></li>
         </ul>
     </nav>
     <header>
@@ -131,32 +172,36 @@ nav ul li a:hover {
         <p>Email: <a href="mailto:ewastemanagement@gmail.com">ewastemanagement@gmail.com</a></p>
         <p>Phone: +91 72071 05126</p>
         <p>Address: 123 456 Hyderabad, India</p>
-        
+
         <div class="team-contact">
             <h3>Team Contacts</h3>
             <p><strong>Varun Malthumkar</strong> - Project Leader</p>
             <p>Email: <a href="mailto:varun@gmail.com">varun@gmail.com</a> | Phone: +91 98765 43211</p>
-            
+
             <p><strong>Sairam</strong> - Backend Developer</p>
             <p>Email: <a href="mailto:sairam@gmail.com">sairam@gmail.com</a> | Phone: +91 98765 43212</p>
-            
+
             <p><strong>Vishnu Vardhan</strong> - Frontend Developer</p>
             <p>Email: <a href="mailto:vishnu@gmail.com">vishnu@gmail.com</a> | Phone: +91 98765 43213</p>
-            
+
             <p><strong>Bindhu</strong> - UI/UX Designer</p>
             <p>Email: <a href="mailto:bindhu@gmail.com">bindhu@gmail.com</a> | Phone: +91 98765 43214</p>
         </div>
-        
-        <form action="#" method="post">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
-            
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-            
-            <label for="message">Message:</label>
-            <textarea id="message" name="message" rows="4" required></textarea>
-            
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            {# ONLY THIS LINE IS NEEDED TO RENDER ALL FORM FIELDS #}
+            {{ form.as_p }}
+
             <button type="submit">Send Message</button>
         </form>
     </div>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recycling & Refurbishment - E-Waste Management</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        nav {
+            background-color: #2c3e50;
+            padding: 10px 0;
+        }
+        nav .logo {
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 20px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
+        nav ul li a:hover {
+            background-color: #16a085;
+            border-radius: 5px;
+        }
+        .content-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            line-height: 1.6;
+        }
+        .content-container h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .content-container p {
+            margin-bottom: 15px;
+        }
+        .content-container ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-container ul li {
+            margin-bottom: 5px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        footer {
+            background: #2c3e50;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">E-Waste</div>
+            <ul>
+                <li><a href="{% url 'homepage' %}">Home</a></li>
+                <li><a href="{% url 'services' %}">Services</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'team' %}">Team</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'signup' %}">Signup</a></li>
+                <li><a href="{% url 'pickup' %}">Pickup Request</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <h2>E-Waste Recycling & Refurbishment</h2>
+        <p>At E-Waste Management, we believe in extending the life of electronic devices and responsibly recycling those that cannot be reused. Our process focuses on maximizing resource recovery and minimizing environmental impact.</p>
+
+        <h3>Our Process:</h3>
+        <ul>
+            <li><strong>Assessment:</strong> Received e-waste is carefully sorted and assessed for its condition and potential for reuse.</li>
+            <li><strong>Refurbishment:</strong> Devices that are still functional or can be easily repaired are refurbished. This involves cleaning, repairing, upgrading components, and rigorous testing to ensure they are fully operational for a second life.</li>
+            <li><strong>Responsible Recycling:</strong> For devices that cannot be refurbished, we dismantle them into their constituent materials (metals, plastics, glass, rare earths). These materials are then sent to specialized recycling facilities that process them safely, preventing hazardous substances from contaminating the environment.</li>
+            <li><strong>Environmental Compliance:</strong> We adhere to all local and international environmental regulations for e-waste processing and disposal.</li>
+        </ul>
+
+        <p>By choosing our recycling and refurbishment services, you contribute to a circular economy, reduce landfill waste, conserve natural resources, and minimize pollution.</p>
+
+        <p style="text-align: center;"><a href="{% url 'pickup' %}" class="btn">Schedule a Pickup to Recycle</a></p>
+    </div>
+
+    <footer>
+        <p>© 2025 E-Waste Management. All rights reserved.</p>
+    </footer>
+</body>
+</html>

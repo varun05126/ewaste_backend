@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Destruction Services - E-Waste Management</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        nav {
+            background-color: #2c3e50;
+            padding: 10px 0;
+        }
+        nav .logo {
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 20px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
+        nav ul li a:hover {
+            background-color: #16a085;
+            border-radius: 5px;
+        }
+        .content-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            line-height: 1.6;
+        }
+        .content-container h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .content-container p {
+            margin-bottom: 15px;
+        }
+        .content-container ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-container ul li {
+            margin-bottom: 5px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        footer {
+            background: #2c3e50;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">E-Waste</div>
+            <ul>
+                <li><a href="{% url 'homepage' %}">Home</a></li>
+                <li><a href="{% url 'services' %}">Services</a></li>
+                <li><a href="{% url 'about' %}">About</a></li>
+                <li><a href="{% url 'team' %}">Team</a></li>
+                <li><a href="{% url 'contact' %}">Contact</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'signup' %}">Signup</a></li>
+                <li><a href="{% url 'pickup' %}">Pickup Request</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <h2>Secure Data Destruction Services</h2>
+        <p>In today's digital age, protecting your sensitive information is paramount, even when disposing of old electronics. Our data destruction services ensure that your personal and confidential data is irretrievably erased from your devices, providing you with complete peace of mind.</p>
+
+        <h3>Our Methods:</h3>
+        <ul>
+            <li><strong>Software-Based Data Wiping:</strong> We use industry-standard software to overwrite your data multiple times, making it impossible to recover. This method is ideal for hard drives, solid-state drives (SSDs), and mobile devices.</li>
+            <li><strong>Degaussing:</strong> For magnetic media (traditional hard drives, tapes), we employ powerful degaussers to destroy the magnetic field, rendering the data unreadable.</li>
+            <li><strong>Physical Destruction:</strong> For ultimate security, we offer physical destruction services such as shredding or crushing, ensuring that storage devices are completely disintegrated. Certificates of destruction can be provided upon request.</li>
+        </ul>
+
+        <p>We adhere to strict data security protocols to comply with various privacy regulations. Don't risk your data falling into the wrong hands; let us handle your e-waste with the highest level of security.</p>
+
+        <p style="text-align: center;"><a href="{% url 'pickup' %}" class="btn">Schedule a Secure Pickup</a></p>
+    </div>
+
+    <footer>
+        <p>© 2025 E-Waste Management. All rights reserved.</p>
+    </footer>
+</body>
+</html>

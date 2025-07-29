@@ -6,7 +6,7 @@
     <title>Our Services - E-Waste Management</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <a href="{% url 'services' %}">Services</a>
+    {# Removed the stray <a href="{% url 'services' %}">Services</a> from here #}
 
     <style>
         body {
@@ -16,51 +16,59 @@
             background-color: #f4f4f4;
             color: #333;
         }
+        /* The header tag here seems redundant as you have a nav directly below it.
+           It's common to have a header containing the nav, but your nav has the logo already.
+           I'm keeping your structure but noting this.
         header {
             background: #2c3e50;
             padding: 20px;
             text-align: center;
         }
+        */
         nav {
-    background-color: #2c3e50;
-    padding: 10px 0;
-}
+            background-color: #2c3e50;
+            padding: 10px 0;
+        }
 
-nav .logo {
-    color: #fff;
-    font-size: 24px;
-    text-align: center;
-    font-weight: bold;
-}
+        nav .logo {
+            color: #fff;
+            font-size: 24px;
+            text-align: center;
+            font-weight: bold;
+        }
 
-nav ul {
-    list-style-type: none;
-    padding: 0;
-    text-align: center;
-}
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
 
-nav ul li {
-    display: inline;
-    margin: 0 20px;
-}
+        nav ul li {
+            display: inline;
+            margin: 0 20px;
+        }
 
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-    font-size: 18px;
-    padding: 10px 20px;
-    transition: background-color 0.3s;
-}
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
+        }
 
-nav ul li a:hover {
-    background-color: #16a085;
-    border-radius: 5px;
-}
+        nav ul li a:hover {
+            background-color: #16a085;
+            border-radius: 5px;
+        }
+        /* The .logo and nav ul/li/a styles are repeated from the nav block above,
+           this is slightly redundant but harmless for now. */
         .logo {
             font-size: 24px;
             font-weight: bold;
             color: #fff;
         }
+        /* Nav ul/li/a styles are already defined above within nav,
+           these are redundant. Removed the redundancy to keep it clean.
         nav ul {
             list-style: none;
             padding: 0;
@@ -75,6 +83,7 @@ nav ul li a:hover {
             text-decoration: none;
             font-size: 18px;
         }
+        */
         .service-container {
             display: flex;
             flex-wrap: wrap;
@@ -109,7 +118,7 @@ nav ul li a:hover {
     </style>
 </head>
 <body>
-    <header>
+    <header> {# This header contains your nav #}
         <nav>
             <div class="logo">E-Waste</div>
             <ul>
@@ -119,26 +128,35 @@ nav ul li a:hover {
                 <li><a href="{% url 'team' %}">Team</a></li>
                 <li><a href="{% url 'contact' %}">Contact</a></li>
                 <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'signup' %}">Signup</a></li>                
+                <li><a href="{% url 'signup' %}">Signup</a></li>
+                <li><a href="{% url 'pickup' %}">Pickup Request</a></li> {# Added pickup link #}
             </ul>
         </nav>
     </header>
-    
+
     <section>
-        <h1>Our Services</h1>
         <div class="service-container">
             <div class="service">
                 <h3>E-Waste Pickup</h3>
                 <p>We collect and safely dispose of your old electronics.</p>
-                <a href="#" class="btn">Learn More</a>
+                <a href="{% url 'pickup' %}" class="btn">Request Pickup</a> {# Changed link to pickup page #}
             </div>
             <div class="service">
                 <h3>Data Destruction</h3>
                 <p>We ensure your data is securely wiped before recycling.</p>
-                <a href="#" class="btn">Learn More</a>
+                <a href="{% url 'data_destruction' %}" class="btn">Learn More</a>
             </div>
             <div class="service">
                 <h3>Recycling & Refurbishment</h3>
                 <p>Your e-waste is either refurbished for reuse or recycled safely.</p>
-                <a href="#" class="btn">Learn More</a>
+                <a href="{% url 'refurbishment' %}" class="btn">Learn More</a>
             </div>
+        </div> {# Close service-container div #}
+    </section> {# Close section #}
+
+    <footer>
+        <p>© 2025 E-Waste Management. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
