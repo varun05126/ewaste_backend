@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Waste Management</title>
-    <!-- {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}"> -->
-    {% load static %}
-<link rel="stylesheet" href="{% static 'styles.css' %}">
-    
-    <style>
 
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+
+    <style>
         /* General Styles */
         body {
             font-family: Arial, sans-serif;
@@ -19,45 +17,45 @@
             background-color: #f4f4f4;
             color: #333;
         }
-        
+
         header {
             background: #2c3e50;
             padding: 20px;
             text-align: center;
         }
-        
+
         .logo {
             font-size: 24px;
             font-weight: bold;
             color: #fff;
         }
-        
+
         nav ul {
             list-style: none;
             padding: 0;
             text-align: center;
         }
-        
+
         nav ul li {
             display: inline;
             margin: 0 15px;
         }
-        
+
         nav ul li a {
             color: #fff;
             text-decoration: none;
             font-size: 18px;
         }
-        
+
         section {
             padding: 50px;
             text-align: center;
         }
-        
+
         h1, h2, h3 {
             color: #2c3e50;
         }
-        
+
         .btn {
             display: inline-block;
             padding: 10px 20px;
@@ -67,7 +65,7 @@
             border-radius: 5px;
             margin-top: 20px;
         }
-        
+
         .service, .team-member {
             background: #fff;
             padding: 20px;
@@ -75,7 +73,7 @@
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
+
         form {
             display: flex;
             flex-direction: column;
@@ -86,20 +84,20 @@
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
+
         input, textarea, button {
             margin: 10px 0;
             padding: 10px;
             font-size: 16px;
         }
-        
+
         button {
             background: #3498db;
             color: #fff;
             border: none;
             cursor: pointer;
         }
-        
+
         footer {
             background: #2c3e50;
             color: #fff;
@@ -107,8 +105,10 @@
             padding: 10px 0;
             margin-top: 20px;
         }
+
+        /* Chatbot styles */
         #chatbot-container {
-            width: 400px; /* Adjusted previously, keep as preferred */
+            width: 400px;
             height: 450px;
             border: 1px solid #ccc;
             display: flex;
@@ -130,18 +130,17 @@
         #chatbot-messages {
             flex-grow: 1;
             padding: 10px;
-            overflow-y: auto; /* Ensures scrollbar appears if content overflows */
+            overflow-y: auto;
             background-color: #f9f9f9;
-            /* word-break: break-word; - Removed, using overflow-wrap instead */
         }
         .message {
-            padding: 10px 15px; /* Slightly increased padding */
+            padding: 10px 15px;
             margin-bottom: 8px;
             border-radius: 15px;
-            max-width: 90%; /* Keeping this, adjust if messages are still too wide */
-            line-height: 1.4; /* Added line-height for better readability */
-            overflow-wrap: break-word; /* NEW: More robust word wrapping */
-            box-sizing: border-box; /* Ensures padding/border are included in width/height */
+            max-width: 90%;
+            line-height: 1.4;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
         }
         .user-message {
             background-color: #007bff;
@@ -162,7 +161,7 @@
             border-top: 1px solid #eee;
             outline: none;
             box-sizing: border-box;
-            flex-shrink: 0; /* NEW: Prevent shrinking */
+            flex-shrink: 0;
         }
         #send-button {
             width: 100%;
@@ -173,7 +172,7 @@
             cursor: pointer;
             font-size: 1rem;
             transition: background-color 0.2s;
-            flex-shrink: 0; /* NEW: Prevent shrinking */
+            flex-shrink: 0;
         }
         #send-button:hover {
             background-color: #218838;
@@ -181,177 +180,155 @@
     </style>
 </head>
 <body>
-    <header>
-        <nav>
-    <div class="logo">E-Waste</div>
-    <ul>
-        <li><a href="{% url 'homepage' %}">Home</a></li>
-        <li><a href="{% url 'services' %}">Services</a></li>
-        <li><a href="{% url 'about' %}">About</a></li>
-        <li><a href="{% url 'team' %}">Team</a></li>
-        <li><a href="{% url 'contact' %}">Contact</a></li>
-        <li><a href="{% url 'login' %}">Login</a></li>
-        <li><a href="{% url 'signup' %}">Signup</a></li>
+<header>
+    <nav>
+        <div class="logo">E-Waste</div>
+        <ul>
+            <li><a href="{% url 'homepage' %}">Home</a></li>
+            <li><a href="{% url 'services' %}">Services</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'team' %}">Team</a></li>
+            <li><a href="{% url 'contact' %}">Contact</a></li>
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'signup' %}">Signup</a></li>
+            <li>
+                <a href="{% url 'ewaste_camera_page' %}"
+                   style="
+                       padding: 8px 14px;
+                       background:#28a745;
+                       color:white;
+                       border-radius:6px;
+                       font-weight:bold;
+                   ">
+                    📷 Detect E-Waste
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
 
-        <!-- 📷 NEW CAMERA AI DETECTION BUTTON -->
-        <li>
-            <a href="{% url 'ewaste_camera_page' %}"
-               style="
-                   padding: 8px 14px;
-                   background:#28a745;
-                   color:white;
-                   border-radius:6px;
-                   font-weight:bold;
-               ">
-               📷 Detect E-Waste
-            </a>
-        </li>
-    </ul>
-</nav>
-    </header>
-    
-    <section id="home">
-        <h1>Welcome to E-Waste Management</h1>
-        <p>Recycle your electronic waste responsibly. Our mission is to create a sustainable future.</p>
-        <a href="{% url 'pickup' %}" class="btn">Request Pickup</a>
-    </section>
-    
-    <section id="services">
-        <h2>Our Services</h2>
-        <div class="service">
-            <h3>E-Waste Pickup</h3>
-            <p>We collect and safely dispose of your old electronics.</p>
+<section id="home">
+    <h1>Welcome to E-Waste Management</h1>
+    <p>Recycle your electronic waste responsibly. Our mission is to create a sustainable future.</p>
+    <a href="{% url 'pickup' %}" class="btn">Request Pickup</a>
+</section>
+
+<section id="services">
+    <h2>Our Services</h2>
+    <div class="service">
+        <h3>E-Waste Pickup</h3>
+        <p>We collect and safely dispose of your old electronics.</p>
+    </div>
+    <div class="service">
+        <h3>Data Destruction</h3>
+        <p>We ensure your data is securely wiped before recycling.</p>
+    </div>
+    <div class="service">
+        <h3>Recycling & Refurbishment</h3>
+        <p>Your e-waste is either refurbished for reuse or recycled safely.</p>
+    </div>
+</section>
+
+<section id="team">
+    <h2>Meet Our Team</h2>
+    <div class="team-container">
+        <div class="team-member">
+            <img src="{% static 'varun111.jpg' %}" alt="Varun Malthumkar">
+            <h3>Varun Malthumkar</h3>
+            <p>Project Leader</p>
+            <p>Varun oversees the entire project, ensuring smooth execution and innovation.</p>
         </div>
-        <div class="service">
-            <h3>Data Destruction</h3>
-            <p>We ensure your data is securely wiped before recycling.</p>
+        <div class="team-member">
+            <img src="{% static 'sairam111.jpg' %}" alt="Sairam">
+            <h3>Sairam</h3>
+            <p>Backend Developer</p>
+            <p>Sairam is responsible for the backend development using Django to power the platform.</p>
         </div>
-        <div class="service">
-            <h3>Recycling & Refurbishment</h3>
-            <p>Your e-waste is either refurbished for reuse or recycled safely.</p>
+        <div class="team-member">
+            <img src="{% static 'vishnu.jpg' %}" alt="Vishnu Vardhan">
+            <h3>Vishnu Vardhan</h3>
+            <p>Frontend Developer</p>
+            <p>Vishnu designs and develops the user-friendly interface using React.</p>
         </div>
-    </section>
-    
-    <section id="team">
-        <h2>Meet Our Team</h2>
-        <div class="team-container">
-            <div class="team-member">
-                <img src="varun111.jpg" alt="Varun Malthumkar">
-                <h3>Varun Malthumkar</h3>
-                <p>Project Leader</p>
-                <p>Varun oversees the entire project, ensuring smooth execution and innovation.</p>
-            </div>
-            <div class="team-member">
-                <img src="sairam111.jpg" alt="Sairam">
-                <h3>Sairam</h3>
-                <p>Backend Developer</p>
-                <p>Sairam is responsible for the backend development using Django to power the platform.</p>
-            </div>
-            <div class="team-member">
-                <img src="vishnu.jpg" alt="Vishnu Vardhan">
-                <h3>Vishnu Vardhan</h3>
-                <p>Frontend Developer</p>
-                <p>Vishnu designs and develops the user-friendly interface using React.</p>
-            </div>
-            <div class="team-member">
-                <img src="bindhu.jpg" alt="Bindhu">
-                <h3>Bindhu</h3>
-                <p>UI/UX Designer</p>
-                <p>Bindhu ensures the platform is visually appealing and easy to use.</p>
-            </div>
+        <div class="team-member">
+            <img src="{% static 'bindhu.jpg' %}" alt="Bindhu">
+            <h3>Bindhu</h3>
+            <p>UI/UX Designer</p>
+            <p>Bindhu ensures the platform is visually appealing and easy to use.</p>
         </div>
-    </section>
-    
-    <section>
-        <div id="chatbot-container">
-            <h3>E-Waste Chatbot</h3>
-            <div id="chatbot-messages"></div>
-            <input type="text" id="user-input" placeholder="Ask about e-waste...">
-            <button id="send-button">Send</button>
-        </div>
-    </section>
-    <footer>
-        <p>&copy; 2025 E-Waste Management. All rights reserved.</p>
-    </footer>
+    </div>
+</section>
 
-    <script>
-        document.getElementById('send-button').addEventListener('click', sendMessage);
-        document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+<section>
+    <div id="chatbot-container">
+        <h3>E-Waste Chatbot</h3>
+        <div id="chatbot-messages"></div>
+        <input type="text" id="user-input" placeholder="Ask about e-waste...">
+        <button id="send-button">Send</button>
+    </div>
+</section>
 
-        function sendMessage() {
-            const userInput = document.getElementById('user-input');
-            const message = userInput.value.trim();
-            if (!message) return;
+<footer>
+    <p>&copy; 2025 E-Waste Management. All rights reserved.</p>
+</footer>
 
-            const chatMessages = document.getElementById('chatbot-messages');
-            // Display user's message
-            const userBubble = document.createElement('div');
-            userBubble.className = 'message user-message';
-            userBubble.textContent = message;
-            chatMessages.appendChild(userBubble);
+<script>
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+    document.getElementById('user-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 
-            userInput.value = ''; // Clear input
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+    function sendMessage() {
+        const userInput = document.getElementById('user-input');
+        const message = userInput.value.trim();
+        if (!message) return;
 
-            // Show a "typing..." indicator
-            const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'message chatbot-message typing-indicator';
-            typingIndicator.textContent = 'Chatbot is typing...';
-            chatMessages.appendChild(typingIndicator);
+        const chatMessages = document.getElementById('chatbot-messages');
+
+        const userBubble = document.createElement('div');
+        userBubble.className = 'message user-message';
+        userBubble.textContent = message;
+        chatMessages.appendChild(userBubble);
+
+        userInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'message chatbot-message typing-indicator';
+        typingIndicator.textContent = 'Chatbot is typing...';
+        chatMessages.appendChild(typingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        fetch('/api/chatbot/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `message=${encodeURIComponent(message)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            chatMessages.removeChild(typingIndicator);
+
+            const chatbotBubble = document.createElement('div');
+            chatbotBubble.className = 'message chatbot-message';
+            chatbotBubble.textContent = data.response;
+            chatMessages.appendChild(chatbotBubble);
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            chatMessages.removeChild(typingIndicator);
 
-            // Send message to Django backend
-            fetch('/api/chatbot/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    // If not using @csrf_exempt, you'd need to add 'X-CSRFToken': getCookie('csrftoken') here
-                },
-                body: `message=${encodeURIComponent(message)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Remove typing indicator
-                chatMessages.removeChild(typingIndicator);
-
-                const chatbotBubble = document.createElement('div');
-                chatbotBubble.className = 'message chatbot-message';
-                chatbotBubble.textContent = data.response; // This line sets the chatbot's message content
-                chatMessages.appendChild(chatbotBubble);
-                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // Remove typing indicator
-                chatMessages.removeChild(typingIndicator);
-
-                const errorBubble = document.createElement('div');
-                errorBubble.className = 'message error-message';
-                errorBubble.textContent = 'Error: Could not get response.';
-                chatMessages.appendChild(errorBubble);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-
-        // Basic function to get CSRF token from cookies (if not using @csrf_exempt)
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-    </script>
-    </body>
+            const errorBubble = document.createElement('div');
+            errorBubble.className = 'message chatbot-message';
+            errorBubble.textContent = 'Error: Could not get response.';
+            chatMessages.appendChild(errorBubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    }
+</script>
+</body>
 </html>
