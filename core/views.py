@@ -1,8 +1,8 @@
 import base64
 import io
+import requests
 
 from groq import Groq
-from huggingface_hub import InferenceClient
 from PIL import Image
 
 from django.http import JsonResponse
@@ -15,10 +15,8 @@ from django.conf import settings
 # ============================================================
 groq_client = Groq(api_key=settings.GROQ_API_KEY)
 
-hf_vision_client = InferenceClient(
-    model="llava-hf/llava-1.5-7b-hf",
-    token=settings.HF_API_KEY,
-)
+HF_API_KEY = settings.HF_API_KEY
+HF_VISION_MODEL = "llava-hf/llava-1.5-7b-hf"
 
 # ============================================================
 # STATIC PAGE ROUTES
@@ -114,15 +112,29 @@ def camera_ai_api(request):
         )
 
     try:
-        # Hugging Face vision call (no custom prompt)
-        result = hf_vision_client.image_to_text(image=image_bytes)
-
-        # result is usually a dict with 'generated_text' key
-        if isinstance(result, dict):
+        # Use Hugging Face Inference API with current endpoint
+        api_url = f"https://api-inference.huggingface.co/models/{HF_VISION_MODEL}"
+        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+        
+        files = {"files": ("image.jpg", image_bytes)}
+        response = requests.post(api_url, headers=headers, files=files)
+        
+        if response.status_code != 200:
+            print(f"HF API Error: {response.status_code} - {response.text}")
+            return JsonResponse(
+                {"detected": "error", "caption": "ai-error"}
+            )
+        
+        result = response.json()
+        
+        # Parse the response
+        if isinstance(result, list) and len(result) > 0:
+            caption_raw = result[0].get("generated_text", "unknown")
+        elif isinstance(result, dict):
             caption_raw = result.get("generated_text", "unknown")
         else:
             caption_raw = str(result)
-
+        
         caption_raw = caption_raw.strip().lower()
         caption = caption_raw.split()[0] if caption_raw else "unknown"
 
@@ -172,7 +184,7 @@ def chatbot_response(request):
                     "content": (
                         "You are an e-waste guide assistant. Answer briefly and helpfully about "
                         "electronic waste recycling, proper disposal, environmental impact, and best practices. "
-                        "Keep responses under 50 words."
+                        "Keep responses under 100 words."
                     ),
                 },
                 {
