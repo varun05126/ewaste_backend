@@ -1,8 +1,8 @@
 import base64
 import io
 
+import google.generativeai as genai
 from PIL import Image
-from huggingface_hub import InferenceClient
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -10,37 +10,51 @@ from django.shortcuts import render
 from django.conf import settings
 
 # ============================================================
-# CONFIGURE HUGGING FACE (GLOBAL)
+# CONFIGURE GEMINI
 # ============================================================
-# Put your HF token into HF_API_KEY in Render / .env
-HF_VISION_MODEL_ID = "llava-hf/llava-1.5-7b-hf"          # vision-language model
-HF_TEXT_MODEL_ID = "HuggingFaceH4/zephyr-7b-beta"        # text chat model [web:61][web:55]
+genai.configure(api_key=settings.GEMINI_API_KEY)
 
-hf_vision_client = InferenceClient(
-    model=HF_VISION_MODEL_ID,
-    token=settings.HF_API_KEY,
-)
-
-hf_text_client = InferenceClient(
-    model=HF_TEXT_MODEL_ID,
-    token=settings.HF_API_KEY,
-)
+vision_model = genai.GenerativeModel("gemini-2.0-flash")
+text_model = genai.GenerativeModel("gemini-2.0-flash")
 
 # ============================================================
 # STATIC PAGE ROUTES
 # ============================================================
-def homepage(request): return render(request, "index.html")
-def services(request): return render(request, "services.html")
-def about(request): return render(request, "about.html")
-def team(request): return render(request, "team.html")
-def contact(request): return render(request, "contact.html")
-def login(request): return render(request, "login.html")
-def signup(request): return render(request, "signup.html")
-def pickup(request): return render(request, "pickup.html")
-def reqs(request): return render(request, "reqs.html")
-def detection(request): return render(request, "detection.html")
-def data_destruction(request): return render(request, "data-destruction.html")
-def refurbishment(request): return render(request, "refurbishment.html")
+def homepage(request): 
+    return render(request, "index.html")
+
+def services(request): 
+    return render(request, "services.html")
+
+def about(request): 
+    return render(request, "about.html")
+
+def team(request): 
+    return render(request, "team.html")
+
+def contact(request): 
+    return render(request, "contact.html")
+
+def login(request): 
+    return render(request, "login.html")
+
+def signup(request): 
+    return render(request, "signup.html")
+
+def pickup(request): 
+    return render(request, "pickup.html")
+
+def reqs(request): 
+    return render(request, "reqs.html")
+
+def detection(request): 
+    return render(request, "detection.html")
+
+def data_destruction(request): 
+    return render(request, "data-destruction.html")
+
+def refurbishment(request): 
+    return render(request, "refurbishment.html")
 
 # ============================================================
 # CAMERA PAGE
@@ -49,7 +63,7 @@ def ewaste_camera_page(request):
     return render(request, "ewaste-camera.html")
 
 # ============================================================
-# STRICT E-WASTE DETECTION USING HF VISION
+# E-WASTE DETECTION USING GEMINI VISION
 # ============================================================
 @csrf_exempt
 def camera_ai_api(request):
@@ -60,11 +74,15 @@ def camera_ai_api(request):
 
     # ---- Validate Base64 ----
     if not image_data or "," not in image_data:
-        return JsonResponse({"detected": "error", "caption": "invalid-image"}, status=400)
+        return JsonResponse(
+            {"detected": "error", "caption": "invalid-image"}, 
+            status=400
+        )
 
     try:
         header, base64_data = image_data.split(",", 1)
 
+        # must be jpeg or png
         if not (
             header.startswith("data:image/jpeg")
             or header.startswith("data:image/png")
@@ -74,14 +92,16 @@ def camera_ai_api(request):
                 status=400,
             )
 
-        image_bytes = base64.b64decode(base64_data)
+        image_bytes = base64.b64decode(base64_data, validate=True)
 
+        # too small = corrupted / blank
         if len(image_bytes) < 4000:
             return JsonResponse(
                 {"detected": "error", "caption": "too-small-image"},
                 status=400,
             )
 
+        # Convert to PIL Image
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     except Exception:
@@ -90,51 +110,33 @@ def camera_ai_api(request):
             status=400,
         )
 
-    strict_prompt = (
-        "You are an object identification system. "
-        "Return ONLY a single object name, no punctuation. "
-        "Electronics: phone, charger, adapter, cable, battery, laptop, camera, "
-        "mouse, keyboard, earbuds, airpods, webcam, powerbank, speaker, remote. "
-        "If unsure, still guess one object."
+    # ---- Vision prompt ----
+    prompt = (
+        "Identify the single main object in this image. "
+        "Return only one word (e.g., phone, charger, laptop, battery, cable, camera, remote, keyboard, earbuds, mouse, adapter, speaker, webcam, powerbank). "
+        "No punctuation, no explanation, no sentences."
     )
 
     try:
-        # Vision-language chat: image + text prompt
-        result = hf_vision_client.chat_completion(
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": strict_prompt},
-                        {"type": "image", "image": img},
-                    ],
-                }
-            ],
-            max_tokens=16,
+        # Gemini vision call
+        response = vision_model.generate_content(
+            [prompt, img],
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=16,
+                temperature=0.2,
+            ),
         )
 
-        raw_content = result.choices[0].message["content"]
-
-        # content can be list-of-parts or string depending on model [web:61]
-        if isinstance(raw_content, list):
-            text_parts = [
-                p.get("text", "")
-                for p in raw_content
-                if p.get("type") == "text"
-            ]
-            caption_raw = " ".join(text_parts)
-        else:
-            caption_raw = str(raw_content)
-
-        caption_raw = caption_raw.strip().lower()
+        caption_raw = response.text.strip().lower()
         caption = caption_raw.split()[0] if caption_raw else "unknown"
 
     except Exception as e:
-        print("HF Vision Error:", repr(e))
+        print("Gemini Vision Error:", repr(e))
         return JsonResponse(
             {"detected": "error", "caption": "ai-error"}
         )
 
+    # ---- Check if electronic (e-waste) ----
     ewaste_keywords = [
         "phone", "mobile", "smartphone",
         "charger", "adapter", "cable", "wire", "usb",
@@ -147,10 +149,12 @@ def camera_ai_api(request):
 
     detected = "ewaste" if any(k in caption for k in ewaste_keywords) else "not-ewaste"
 
-    return JsonResponse({"detected": detected, "caption": caption})
+    return JsonResponse(
+        {"detected": detected, "caption": caption}
+    )
 
 # ============================================================
-# CHATBOT USING HF TEXT MODEL
+# CHATBOT USING GEMINI TEXT
 # ============================================================
 @csrf_exempt
 def chatbot_response(request):
@@ -163,29 +167,28 @@ def chatbot_response(request):
         return JsonResponse({"response": "Please enter a message."})
 
     try:
-        chat = hf_text_client.chat_completion(
-            messages=[
+        # Gemini text call
+        response = text_model.generate_content(
+            [
                 {
-                    "role": "system",
-                    "content": "You are an e-waste guide. Answer briefly.",
+                    "role": "user",
+                    "parts": "You are an e-waste guide. Answer briefly and helpfully about electronic waste recycling, proper disposal, environmental impact, and best practices. Keep responses under 100 words.",
                 },
                 {
                     "role": "user",
-                    "content": user_message,
-                },
+                    "parts": user_message,
+                }
             ],
-            max_tokens=256,
+            generation_config=genai.types.GenerationConfig(
+                max_output_tokens=256,
+                temperature=0.4,
+            ),
         )
 
-        bot_reply = chat.choices[0].message["content"]
-        if isinstance(bot_reply, list):
-            # normalize to string if model returns parts
-            bot_reply = "".join(
-                p.get("text", "") for p in bot_reply if p.get("type") == "text"
-            )
+        bot_reply = response.text
 
     except Exception as e:
-        print("HF Chat Error:", repr(e))
+        print("Gemini Chat Error:", repr(e))
         bot_reply = "Sorry, technical issue occurred."
 
     return JsonResponse({"response": bot_reply})
