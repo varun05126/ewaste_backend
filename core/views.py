@@ -168,17 +168,15 @@ def chatbot_response(request):
 
     try:
         # Gemini text call
+        system_prompt = (
+            "You are an e-waste guide assistant. Answer briefly and helpfully about electronic waste recycling, "
+            "proper disposal, environmental impact, and best practices. Keep responses under 100 words."
+        )
+        
+        full_prompt = f"{system_prompt}\n\nUser: {user_message}"
+        
         response = text_model.generate_content(
-            [
-                {
-                    "role": "user",
-                    "parts": "You are an e-waste guide. Answer briefly and helpfully about electronic waste recycling, proper disposal, environmental impact, and best practices. Keep responses under 100 words.",
-                },
-                {
-                    "role": "user",
-                    "parts": user_message,
-                }
-            ],
+            full_prompt,
             generation_config=genai.types.GenerationConfig(
                 max_output_tokens=256,
                 temperature=0.4,
