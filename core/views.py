@@ -1,16 +1,30 @@
 import base64
-from groq import Groq
+import io
 
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
-from django.views.decorators.http import require_http_methods
-from django.shortcuts import render, redirect
+from PIL import Image
+from huggingface_hub import InferenceClient
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 from django.conf import settings
 
 # ============================================================
-# CONFIGURE GROQ (GLOBAL)
+# CONFIGURE HUGGING FACE (GLOBAL)
 # ============================================================
-client = Groq(api_key=settings.GROQ_API_KEY)
+# Put your HF token into HF_API_KEY in Render / .env
+HF_VISION_MODEL_ID = "llava-hf/llava-1.5-7b-hf"          # vision-language model
+HF_TEXT_MODEL_ID = "HuggingFaceH4/zephyr-7b-beta"        # text chat model [web:61][web:55]
+
+hf_vision_client = InferenceClient(
+    model=HF_VISION_MODEL_ID,
+    token=settings.HF_API_KEY,
+)
+
+hf_text_client = InferenceClient(
+    model=HF_TEXT_MODEL_ID,
+    token=settings.HF_API_KEY,
+)
 
 # ============================================================
 # STATIC PAGE ROUTES
@@ -35,7 +49,7 @@ def ewaste_camera_page(request):
     return render(request, "ewaste-camera.html")
 
 # ============================================================
-# STRICT E-WASTE DETECTION USING GROQ VISION
+# STRICT E-WASTE DETECTION USING HF VISION
 # ============================================================
 @csrf_exempt
 def camera_ai_api(request):
@@ -51,7 +65,6 @@ def camera_ai_api(request):
     try:
         header, base64_data = image_data.split(",", 1)
 
-        # must be jpeg or png
         if not (
             header.startswith("data:image/jpeg")
             or header.startswith("data:image/png")
@@ -61,14 +74,15 @@ def camera_ai_api(request):
                 status=400,
             )
 
-        image_bytes = base64.b64decode(base64_data, validate=True)
+        image_bytes = base64.b64decode(base64_data)
 
-        # too small = corrupted / blank
         if len(image_bytes) < 4000:
             return JsonResponse(
                 {"detected": "error", "caption": "too-small-image"},
                 status=400,
             )
+
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     except Exception:
         return JsonResponse(
@@ -76,57 +90,51 @@ def camera_ai_api(request):
             status=400,
         )
 
-    # ---- Strict detection prompt ----
-    strict_prompt = """
-    You are an object identification system.
-
-    RULES:
-    - Return ONLY a single object name.
-    - No sentences, punctuation or explanation.
-    - Electronics list: phone, charger, adapter, cable, battery, laptop, camera,
-      mouse, keyboard, earbuds, airpods, webcam, powerbank, speaker, remote.
-    - If unsure: still guess one object.
-    """
+    strict_prompt = (
+        "You are an object identification system. "
+        "Return ONLY a single object name, no punctuation. "
+        "Electronics: phone, charger, adapter, cable, battery, laptop, camera, "
+        "mouse, keyboard, earbuds, airpods, webcam, powerbank, speaker, remote. "
+        "If unsure, still guess one object."
+    )
 
     try:
-        # Groq vision call (multimodal)
-        chat_completion = client.chat.completions.create(
-            model="llama-3.2-90b-vision-preview",
+        # Vision-language chat: image + text prompt
+        result = hf_vision_client.chat_completion(
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {"type": "text", "text": strict_prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64.b64encode(image_bytes).decode('utf-8')}",
-                            },
-                        },
+                        {"type": "image", "image": img},
                     ],
                 }
             ],
-            temperature=0.2,
+            max_tokens=16,
         )
 
-        # For Groq vision models, message.content is a string caption
-        raw_content = chat_completion.choices[0].message.content
-        caption = str(raw_content).strip().lower()
+        raw_content = result.choices[0].message["content"]
 
-        # keep only first word
-        if caption:
-            caption = caption.split()[0]
+        # content can be list-of-parts or string depending on model [web:61]
+        if isinstance(raw_content, list):
+            text_parts = [
+                p.get("text", "")
+                for p in raw_content
+                if p.get("type") == "text"
+            ]
+            caption_raw = " ".join(text_parts)
         else:
-            caption = "unknown"
+            caption_raw = str(raw_content)
+
+        caption_raw = caption_raw.strip().lower()
+        caption = caption_raw.split()[0] if caption_raw else "unknown"
 
     except Exception as e:
-        # check Render logs for this print if something goes wrong
-        print("Groq Detection Error:", repr(e))
+        print("HF Vision Error:", repr(e))
         return JsonResponse(
             {"detected": "error", "caption": "ai-error"}
         )
 
-    # ---- Check if electronic ----
     ewaste_keywords = [
         "phone", "mobile", "smartphone",
         "charger", "adapter", "cable", "wire", "usb",
@@ -139,12 +147,10 @@ def camera_ai_api(request):
 
     detected = "ewaste" if any(k in caption for k in ewaste_keywords) else "not-ewaste"
 
-    return JsonResponse(
-        {"detected": detected, "caption": caption}
-    )
+    return JsonResponse({"detected": detected, "caption": caption})
 
 # ============================================================
-# CHATBOT USING GROQ
+# CHATBOT USING HF TEXT MODEL
 # ============================================================
 @csrf_exempt
 def chatbot_response(request):
@@ -157,8 +163,7 @@ def chatbot_response(request):
         return JsonResponse({"response": "Please enter a message."})
 
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+        chat = hf_text_client.chat_completion(
             messages=[
                 {
                     "role": "system",
@@ -169,14 +174,18 @@ def chatbot_response(request):
                     "content": user_message,
                 },
             ],
-            temperature=0.4,
             max_tokens=256,
         )
 
-        bot_reply = completion.choices[0].message.content
+        bot_reply = chat.choices[0].message["content"]
+        if isinstance(bot_reply, list):
+            # normalize to string if model returns parts
+            bot_reply = "".join(
+                p.get("text", "") for p in bot_reply if p.get("type") == "text"
+            )
 
     except Exception as e:
-        print("Groq Chatbot Error:", repr(e))
+        print("HF Chat Error:", repr(e))
         bot_reply = "Sorry, technical issue occurred."
 
     return JsonResponse({"response": bot_reply})
