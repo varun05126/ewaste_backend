@@ -56,24 +56,25 @@ def camera_ai_api(request):
             header.startswith("data:image/jpeg")
             or header.startswith("data:image/png")
         ):
-            return JsonResponse({
-                "detected": "error",
-                "caption": "unsupported-format"
-            }, status=400)
+            return JsonResponse(
+                {"detected": "error", "caption": "unsupported-format"},
+                status=400,
+            )
 
         image_bytes = base64.b64decode(base64_data, validate=True)
 
-        if len(image_bytes) < 4000:  # too small = corrupted
-            return JsonResponse({
-                "detected": "error",
-                "caption": "too-small-image"
-            }, status=400)
+        # too small = corrupted / blank
+        if len(image_bytes) < 4000:
+            return JsonResponse(
+                {"detected": "error", "caption": "too-small-image"},
+                status=400,
+            )
 
     except Exception:
-        return JsonResponse({
-            "detected": "error",
-            "caption": "bad-image-data"
-        }, status=400)
+        return JsonResponse(
+            {"detected": "error", "caption": "bad-image-data"},
+            status=400,
+        )
 
     # ---- Strict detection prompt ----
     strict_prompt = """
@@ -88,7 +89,7 @@ def camera_ai_api(request):
     """
 
     try:
-        # Groq vision call
+        # Groq vision call (multimodal)
         chat_completion = client.chat.completions.create(
             model="llama-3.2-90b-vision-preview",
             messages=[
@@ -108,16 +109,22 @@ def camera_ai_api(request):
             temperature=0.2,
         )
 
-        # Groq returns a list of content parts; first part is text
-        caption = chat_completion.choices[0].message.content[0].text.strip().lower()
-        caption = caption.split()[0]  # only one word
+        # For Groq vision models, message.content is a string caption
+        raw_content = chat_completion.choices[0].message.content
+        caption = str(raw_content).strip().lower()
+
+        # keep only first word
+        if caption:
+            caption = caption.split()[0]
+        else:
+            caption = "unknown"
 
     except Exception as e:
-        print("Groq Detection Error:", e)
-        return JsonResponse({
-            "detected": "error",
-            "caption": "ai-error"
-        })
+        # check Render logs for this print if something goes wrong
+        print("Groq Detection Error:", repr(e))
+        return JsonResponse(
+            {"detected": "error", "caption": "ai-error"}
+        )
 
     # ---- Check if electronic ----
     ewaste_keywords = [
@@ -127,15 +134,14 @@ def camera_ai_api(request):
         "earbuds", "airpods",
         "laptop", "mouse", "keyboard",
         "speaker", "camera", "webcam",
-        "remote", "gadget", "device"
+        "remote", "gadget", "device",
     ]
 
     detected = "ewaste" if any(k in caption for k in ewaste_keywords) else "not-ewaste"
 
-    return JsonResponse({
-        "detected": detected,
-        "caption": caption
-    })
+    return JsonResponse(
+        {"detected": detected, "caption": caption}
+    )
 
 # ============================================================
 # CHATBOT USING GROQ
@@ -170,7 +176,7 @@ def chatbot_response(request):
         bot_reply = completion.choices[0].message.content
 
     except Exception as e:
-        print("Groq Chatbot Error:", e)
+        print("Groq Chatbot Error:", repr(e))
         bot_reply = "Sorry, technical issue occurred."
 
     return JsonResponse({"response": bot_reply})
