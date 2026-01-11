@@ -16,7 +16,7 @@ from django.conf import settings
 groq_client = Groq(api_key=settings.GROQ_API_KEY)
 
 HF_API_KEY = settings.HF_API_KEY
-HF_VISION_MODEL = "llava-hf/llava-1.5-7b-hf"
+HF_VISION_MODEL = "Salesforce/blip-image-captioning-base"  # Faster, more reliable
 
 # ============================================================
 # STATIC PAGE ROUTES
@@ -64,7 +64,7 @@ def ewaste_camera_page(request):
     return render(request, "ewaste-camera.html")
 
 # ============================================================
-# E-WASTE DETECTION USING HUGGING FACE VISION
+# E-WASTE DETECTION USING HUGGING FACE VISION (BLIP MODEL)
 # ============================================================
 @csrf_exempt
 def camera_ai_api(request):
@@ -112,22 +112,22 @@ def camera_ai_api(request):
         )
 
     try:
-        # Use Hugging Face Inference API with current endpoint
+        # Use Hugging Face Inference API with BLIP model (faster)
         api_url = f"https://api-inference.huggingface.co/models/{HF_VISION_MODEL}"
         headers = {"Authorization": f"Bearer {HF_API_KEY}"}
         
         files = {"files": ("image.jpg", image_bytes)}
-        response = requests.post(api_url, headers=headers, files=files)
+        response = requests.post(api_url, headers=headers, files=files, timeout=30)
         
         if response.status_code != 200:
-            print(f"HF API Error: {response.status_code} - {response.text}")
+            print(f"HF API Error: {response.status_code} - {response.text[:200]}")
             return JsonResponse(
                 {"detected": "error", "caption": "ai-error"}
             )
         
         result = response.json()
         
-        # Parse the response
+        # Parse caption from BLIP model
         if isinstance(result, list) and len(result) > 0:
             caption_raw = result[0].get("generated_text", "unknown")
         elif isinstance(result, dict):
@@ -184,7 +184,7 @@ def chatbot_response(request):
                     "content": (
                         "You are an e-waste guide assistant. Answer briefly and helpfully about "
                         "electronic waste recycling, proper disposal, environmental impact, and best practices. "
-                        "Keep responses under 100 words."
+                        "Keep responses under 50 words."
                     ),
                 },
                 {
