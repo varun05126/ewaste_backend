@@ -1,7 +1,8 @@
 import base64
 import io
 
-import google.generativeai as genai
+from groq import Groq
+from huggingface_hub import InferenceClient
 from PIL import Image
 
 from django.http import JsonResponse
@@ -10,12 +11,14 @@ from django.shortcuts import render
 from django.conf import settings
 
 # ============================================================
-# CONFIGURE GEMINI
+# CONFIGURE GROQ (TEXT) + HUGGING FACE (VISION)
 # ============================================================
-genai.configure(api_key=settings.GEMINI_API_KEY)
+groq_client = Groq(api_key=settings.GROQ_API_KEY)
 
-vision_model = genai.GenerativeModel("gemini-2.0-flash")
-text_model = genai.GenerativeModel("gemini-2.0-flash")
+hf_vision_client = InferenceClient(
+    model="llava-hf/llava-1.5-7b-hf",
+    token=settings.HF_API_KEY,
+)
 
 # ============================================================
 # STATIC PAGE ROUTES
@@ -63,7 +66,7 @@ def ewaste_camera_page(request):
     return render(request, "ewaste-camera.html")
 
 # ============================================================
-# E-WASTE DETECTION USING GEMINI VISION
+# E-WASTE DETECTION USING HUGGING FACE VISION
 # ============================================================
 @csrf_exempt
 def camera_ai_api(request):
@@ -114,24 +117,22 @@ def camera_ai_api(request):
     prompt = (
         "Identify the single main object in this image. "
         "Return only one word (e.g., phone, charger, laptop, battery, cable, camera, remote, keyboard, earbuds, mouse, adapter, speaker, webcam, powerbank). "
-        "No punctuation, no explanation, no sentences."
+        "No punctuation, no explanation."
     )
 
     try:
-        # Gemini vision call
-        response = vision_model.generate_content(
-            [prompt, img],
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=16,
-                temperature=0.2,
-            ),
+        # Hugging Face vision call
+        raw_caption = hf_vision_client.image_to_text(
+            image=image_bytes,
+            prompt=prompt,
+            max_new_tokens=16,
         )
 
-        caption_raw = response.text.strip().lower()
+        caption_raw = str(raw_caption).strip().lower()
         caption = caption_raw.split()[0] if caption_raw else "unknown"
 
     except Exception as e:
-        print("Gemini Vision Error:", repr(e))
+        print("HF Vision Error:", repr(e))
         return JsonResponse(
             {"detected": "error", "caption": "ai-error"}
         )
@@ -154,7 +155,7 @@ def camera_ai_api(request):
     )
 
 # ============================================================
-# CHATBOT USING GEMINI TEXT
+# CHATBOT USING GROQ TEXT
 # ============================================================
 @csrf_exempt
 def chatbot_response(request):
@@ -167,26 +168,31 @@ def chatbot_response(request):
         return JsonResponse({"response": "Please enter a message."})
 
     try:
-        # Gemini text call
-        system_prompt = (
-            "You are an e-waste guide assistant. Answer briefly and helpfully about electronic waste recycling, "
-            "proper disposal, environmental impact, and best practices. Keep responses under 100 words."
-        )
-        
-        full_prompt = f"{system_prompt}\n\nUser: {user_message}"
-        
-        response = text_model.generate_content(
-            full_prompt,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=256,
-                temperature=0.4,
-            ),
+        # Groq text call
+        completion = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an e-waste guide assistant. Answer briefly and helpfully about "
+                        "electronic waste recycling, proper disposal, environmental impact, and best practices. "
+                        "Keep responses under 100 words."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": user_message,
+                },
+            ],
+            temperature=0.4,
+            max_tokens=256,
         )
 
-        bot_reply = response.text
+        bot_reply = completion.choices[0].message.content
 
     except Exception as e:
-        print("Gemini Chat Error:", repr(e))
+        print("Groq Chat Error:", repr(e))
         bot_reply = "Sorry, technical issue occurred."
 
     return JsonResponse({"response": bot_reply})
