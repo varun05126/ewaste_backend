@@ -43,6 +43,7 @@
             font-size: 16px;
             background: white;
             cursor: pointer;
+            font-weight: bold;
         }
 
         #item-select:focus {
@@ -60,10 +61,16 @@
             cursor: pointer;
             border: none;
             width: 100%;
+            font-weight: bold;
         }
 
         .detect-btn:hover {
             background: #444;
+        }
+
+        .detect-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
         }
 
         /* RESULT BOX */
@@ -89,6 +96,17 @@
             font-weight: bold;
         }
 
+        .waiting-box {
+            background: #ffc107;
+            color: #333;
+            padding: 18px;
+            border-radius: 10px;
+            width: 280px;
+            margin: 20px auto;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
         #autoToggle {
             width: 18px;
             height: 18px;
@@ -105,6 +123,13 @@
             font-size: 18px;
             color: #555;
             margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -112,12 +137,12 @@
 <body>
 
     <h1>E-Waste AI Detection</h1>
-    <p id="subtext">Auto-detecting every 1 second...</p>
+    <p id="subtext">Select an item and click detect</p>
 
     <!-- AUTO-DETECT TOGGLE -->
     <div style="margin-bottom: 20px;">
-        <input type="checkbox" id="autoToggle" checked>
-        <label id="auto-label">Auto Detect</label>
+        <input type="checkbox" id="autoToggle">
+        <label id="auto-label">Auto Detect (requires item selected)</label>
     </div>
 
     <!-- CAMERA AREA -->
@@ -147,10 +172,11 @@
         </select>
 
         <button class="detect-btn" id="detectButton">Manual Detect</button>
+        <p class="info-text">Select an item above, then click detect</p>
     </div>
 
     <!-- RESULT -->
-    <div id="result-box" class="not-ewaste-box">Waiting...</div>
+    <div id="result-box" class="waiting-box">Waiting...</div>
     <div id="object-name">Object: —</div>
 
     <!-- Hidden canvas -->
@@ -165,9 +191,9 @@ document.body.addEventListener("click", function enableAudio() {
     let a2 = document.getElementById("sound-ewaste");
     let a3 = document.getElementById("sound-not-ewaste");
 
-    a1.play().catch(()=>{});
-    a2.play().catch(()=>{});
-    a3.play().catch(()=>{});
+    if (a1) a1.play().catch(()=>{});
+    if (a2) a2.play().catch(()=>{});
+    if (a3) a3.play().catch(()=>{});
 
     document.body.removeEventListener("click", enableAudio);
 });
@@ -178,16 +204,27 @@ document.body.addEventListener("click", function enableAudio() {
 
 const video = document.getElementById("camera");
 navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => video.srcObject = stream);
+    .then(stream => video.srcObject = stream)
+    .catch(err => {
+        console.error("Camera error:", err);
+        alert("Camera access denied. Please allow camera permission.");
+    });
 
 // AUTO DETECT CONTROL
-let autoMode = true;
+let autoMode = false;
 let autoInterval = null;
 
 document.getElementById("autoToggle").addEventListener("change", function () {
     autoMode = this.checked;
 
     if (autoMode) {
+        const selectedItem = document.getElementById("item-select").value;
+        if (!selectedItem) {
+            alert("Please select an item first!");
+            this.checked = false;
+            autoMode = false;
+            return;
+        }
         document.getElementById("subtext").innerText = "Auto-detecting every 1 second...";
         startAutoDetect();
     } else {
@@ -195,9 +232,6 @@ document.getElementById("autoToggle").addEventListener("change", function () {
         stopAutoDetect();
     }
 });
-
-// Start auto mode by default
-startAutoDetect();
 
 function startAutoDetect() {
     stopAutoDetect();
@@ -215,6 +249,13 @@ function stopAutoDetect() {
 
 // Manual Detect
 document.getElementById("detectButton").addEventListener("click", () => {
+    const selectedItem = document.getElementById("item-select").value;
+    
+    if (!selectedItem) {
+        alert("Please select an item first!");
+        return;
+    }
+    
     captureAndSend();
 });
 
@@ -224,6 +265,18 @@ document.getElementById("detectButton").addEventListener("click", () => {
 
 function captureAndSend() {
     const canvas = document.getElementById("hiddenCanvas");
+    const selectedItem = document.getElementById("item-select").value;
+
+    if (!selectedItem) {
+        console.warn("No item selected, skipping detection");
+        return;
+    }
+
+    if (!video.videoWidth || !video.videoHeight) {
+        console.warn("Video not ready yet");
+        return;
+    }
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
@@ -231,13 +284,10 @@ function captureAndSend() {
     ctx.drawImage(video, 0, 0);
 
     const imageData = canvas.toDataURL("image/jpeg");
-    const selectedItem = document.getElementById("item-select").value;
 
     // Build form data
     let bodyData = "image=" + encodeURIComponent(imageData);
-    if (selectedItem) {
-        bodyData += "&item=" + encodeURIComponent(selectedItem);
-    }
+    bodyData += "&item=" + encodeURIComponent(selectedItem);
 
     fetch("/api/camera-detect/", {
         method: "POST",
@@ -245,10 +295,13 @@ function captureAndSend() {
         body: bodyData
     })
     .then(res => res.json())
-    .then(data => updateUI(data.detected, data.caption))
+    .then(data => {
+        console.log("Response:", data);
+        updateUI(data.detected, data.caption, selectedItem);
+    })
     .catch(err => {
         console.error("Error:", err);
-        updateUI("error", "connection_error");
+        updateUI("error", "connection_error", selectedItem);
     });
 }
 
@@ -256,15 +309,16 @@ function captureAndSend() {
 // UI UPDATE + SOUND
 ////////////////////////////////////////////////////////////////////////////////
 
-function updateUI(result, caption) {
+function updateUI(result, caption, itemName) {
     const box = document.getElementById("result-box");
     const name = document.getElementById("object-name");
 
-    if (!caption) caption = "unknown";
+    if (!caption) caption = itemName || "unknown";
 
     // Always play "object detected" sound
     try {
-        document.getElementById("sound-detect").play().catch(()=>{});
+        let audio = document.getElementById("sound-detect");
+        if (audio) audio.play().catch(()=>{});
     } catch (e) {}
 
     if (result === "ewaste") {
@@ -272,26 +326,28 @@ function updateUI(result, caption) {
         box.innerHTML = "♻️ EWASTE ✔";
 
         try {
-            document.getElementById("sound-ewaste").play().catch(()=>{});
+            let audio = document.getElementById("sound-ewaste");
+            if (audio) audio.play().catch(()=>{});
         } catch (e) {}
     } else if (result === "error") {
-        box.className = "not-ewaste-box";
+        box.className = "waiting-box";
         box.innerHTML = "⚠️ ERROR";
-        name.innerText = "Object: " + caption;
+        name.innerText = `Object: ${itemName}`;
     } else {
         box.className = "not-ewaste-box";
         box.innerHTML = "❌ NOT EWASTE";
 
         try {
-            document.getElementById("sound-not-ewaste").play().catch(()=>{});
+            let audio = document.getElementById("sound-not-ewaste");
+            if (audio) audio.play().catch(()=>{});
         } catch (e) {}
     }
 
-    name.innerText = "Object: " + caption;
+    name.innerText = `Object: ${caption}`;
 }
 </script>
 
-<!-- AUDIO FILES -->
+<!-- AUDIO FILES (optional - if missing, app still works) -->
 <audio id="sound-detect" src="/static/sounds/object_detected.mp3"></audio>
 <audio id="sound-ewaste" src="/static/sounds/ewaste.mp3"></audio>
 <audio id="sound-not-ewaste" src="/static/sounds/not_ewaste.mp3"></audio>
