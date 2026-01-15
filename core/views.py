@@ -198,3 +198,13 @@ def google_verify(request):
         "google-site-verification: googleb5949ab1058f2676.html",
         content_type="text/html"
     )
+
+#seo file
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Sitemap: https://ewaste-backend-ewia.onrender.com/sitemap.xml"
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+

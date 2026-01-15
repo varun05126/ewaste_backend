@@ -42,6 +42,9 @@ urlpatterns = [
 
     #google site verification
     path("googleb5949ab1058f2676.html", views.google_verify),
+
+    #seo
+    path("robots.txt", views.robots_txt),
 ]
 
 if settings.DEBUG:
