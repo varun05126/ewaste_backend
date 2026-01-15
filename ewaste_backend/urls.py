@@ -21,6 +21,7 @@ urlpatterns = [
     path("about/", views.about, name="about"),
     path("team/", views.team, name="team"),
     path("contact/", views.contact, name="contact"),
+    path("data-destruction/, views.
 
     # AUTH
     path("login/", views.login, name="login"),
@@ -55,6 +56,10 @@ urlpatterns = [
     # SEO
     path("robots.txt", views.robots_txt),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+
+    # ===== SERVICES =====
+    path("data-destruction/", views.data_destruction, name="data_destruction"),
+    path("refurbishment/", views.refurbishment, name="refurbishment"),
 ]
 
 # STATIC FILES (DEV MODE)
