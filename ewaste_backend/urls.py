@@ -3,12 +3,10 @@ from django.urls import path
 from core import views
 from django.conf import settings
 from django.conf.urls.static import static
-
-# Sitemap imports
 from django.contrib.sitemaps.views import sitemap
 from core.sitemaps import StaticViewSitemap
 
-# Sitemap dictionary (THIS WAS MISSING)
+# Sitemap config
 sitemaps = {
     "static": StaticViewSitemap,
 }
@@ -21,18 +19,15 @@ urlpatterns = [
     path("about/", views.about, name="about"),
     path("team/", views.team, name="team"),
     path("contact/", views.contact, name="contact"),
-    path("data-destruction/, views.
 
     # AUTH
     path("login/", views.login, name="login"),
     path("signup/", views.signup, name="signup"),
 
-    # HARDWARE PAGE
+    # HARDWARE / AI
     path("detection/", views.detection, name="detection"),
-
-    # CAMERA AI
     path("ewaste-camera/", views.ewaste_camera_page, name="ewaste_camera_page"),
-    path("api/camera-detect/", views.camera_ai_api, name="camera-ai"),
+    path("api/camera-detect/", views.camera_ai_api, name="camera_ai"),
 
     # SERVICES
     path("data-destruction/", views.data_destruction, name="data_destruction"),
@@ -47,17 +42,16 @@ urlpatterns = [
     # CHATBOT
     path("api/chatbot/", views.chatbot_response, name="chatbot_response"),
 
-    # ADMIN PANEL
+    # ADMIN
     path("admin/", admin.site.urls),
 
-    # GOOGLE SITE VERIFICATION
+    # GOOGLE VERIFICATION
     path("googleb5949ab1058f2676.html", views.google_verify),
 
-    # SEO
+    # SEO FILES
     path("robots.txt", views.robots_txt),
     path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
 ]
 
-# STATIC FILES (DEV MODE)
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
