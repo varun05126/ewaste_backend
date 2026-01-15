@@ -189,3 +189,12 @@ def chatbot_response(request):
         bot_reply = "Sorry, technical issue occurred."
 
     return JsonResponse({"response": bot_reply})
+
+#google site verification
+from django.http import HttpResponse
+
+def google_verify(request):
+    return HttpResponse(
+        "google-site-verification: googleb5949ab1058f2676.html",
+        content_type="text/html"
+    )

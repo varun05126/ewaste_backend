@@ -39,6 +39,9 @@ urlpatterns = [
 
     # ADMIN PANEL
     path("admin/", admin.site.urls),
+
+    #google site verification
+    path("googleb5949ab1058f2676.html", views.google_verify),
 ]
 
 if settings.DEBUG:
