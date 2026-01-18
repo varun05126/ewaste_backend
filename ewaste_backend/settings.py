@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
-default_hosts = "127.0.0.1,localhost,ewaste-backend-ewia.onrender.com"
+default_hosts = "127.0.0.1,localhost,ewaste-txgr.onrender.com"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", default_hosts).split(",")
 
 # ------------------------
