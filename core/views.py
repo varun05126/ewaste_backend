@@ -204,7 +204,7 @@ def robots_txt(request):
     lines = [
         "User-agent: *",
         "Allow: /",
-        "Sitemap: https://ewaste-backend-ewia.onrender.com/sitemap.xml"
+        "Sitemap: https://ewaste-txgr.onrender.com.sitemap.xml"
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
